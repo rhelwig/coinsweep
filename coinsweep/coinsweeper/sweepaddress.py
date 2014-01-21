@@ -75,30 +75,64 @@ class TimeThreshold(object):
         own solution.
 
         """
+        wait = timedelta()
         if verbose:
             print "Duration of {0}".format(self.duration)
-        wait = timedelta()
-        index = self.duration.find("Y")
-        if index > 0:
-            val = int(self.duration[index - 1:index])
-            wait = wait + timedelta(years=val)
-        index = self.duration.find("M")
-        if index > 0:
-            val = int(self.duration[index - 1:index])
-            wait = wait + timedelta(months=val)
-        index = self.duration.find("W")
-        if index > 0:
-            val = int(self.duration[index - 1:index])
-            wait = wait + timedelta(weeks=val)
-        index = self.duration.find("D")
-        if index > 0:
-            val = int(self.duration[index - 1:index])
-            wait = wait + timedelta(days=val)
-        index = self.duration.find("H")
-        if index > 0:
-            val = int(self.duration[index - 1:index])
-            wait = wait + timedelta(hours=val)
+            print "Comparing to {0}".format(waited)
+
+        # Yeah, we could use RE for this but RE *always*
+        # makes code harder to read and understand plus it
+        # gives you less vectors for handling errors
+        temp = self.duration
+        if temp.startswith("P"):
+            temp = temp[1:]
+
+            f, s, a = temp.partition("Y")
+            if s == "Y":
+                val = int(f)
+                wait = wait + timedelta(days=val * 365)
+                temp = a
+            else:
+                temp = f
+
+            f, s, a = temp.partition("M")
+            if s == "M":
+                val = int(f)
+                wait = wait + timedelta(days=val * 30)
+                temp = a
+            else:
+                temp = f
+
+            f, s, a = temp.partition("W")
+            if s == "W":
+                val = int(f)
+                wait = wait + timedelta(days=val * 7)
+                temp = a
+            else:
+                temp = f
+
+            f, s, a = temp.partition("D")
+            if s == "D":
+                val = int(f)
+                wait = wait + timedelta(days=val)
+                temp = a
+            else:
+                temp = f
+
+            f, s, a = temp.partition("H")
+            if s == "H":
+                val = int(f)
+                wait = wait + timedelta(hours=val)
+                temp = a
+            else:
+                temp = f
+        else:
+            if verbose:
+                print "TimeThreshold has no duration."
+            return False
+
         if verbose:
+            print "Time needed to wait is {0}".format(wait)
             print "Duration comparison is {0}".format(waited > wait)
         return waited > wait
 

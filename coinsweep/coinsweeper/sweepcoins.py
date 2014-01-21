@@ -25,7 +25,7 @@ from sweepaddress import SweepAddressInfo
 __all__ = []
 __version__ = 0.5
 __date__ = '2014-01-04'
-__updated__ = '2014-01-14'
+__updated__ = '2014-01-21'
 
 DEBUG = 0
 TESTRUN = 0
@@ -331,7 +331,7 @@ Warning: This will expose the private key of the watched addresses.
         for service in service_list.itervalues():
             r = service.process_transactions(args.verbose)
             for address, result in r.iteritems():
-                print "{0}: {1}".format(address, result)
+                print "Send from {0} results in {1}".format(address, result)
 
         return 0
     except KeyboardInterrupt:

@@ -28,7 +28,8 @@ def _read_url(url, post_data=None, verbose=False):
     errors = {}
     request = None
     headers = {'User-Agent':\
-'Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1667.0 Safari/537.36'}
+'Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36"\
+" (KHTML, like Gecko) Chrome/32.0.1667.0 Safari/537.36'}
     try:
         data = None
         if post_data:
@@ -71,8 +72,6 @@ class AddressDataBC(object):
         balance is in satoshis
         errors is a dictionary.
         """
-        if verbose:
-            print "ENTER AddressDataBC.fetch_balance"
 
         url = "https://blockchain.info/q/addressbalance/"
         url += address
@@ -94,17 +93,12 @@ class AddressDataBC(object):
         errors is a dictionary.
 
         """
-        if verbose:
-            print "ENTER AddressDataBC.fetch_unspent_outputs"
         self.unspent_outputs = None
         url = "https://blockchain.info/unspent?active="
         url += address
         uo_json, errors = _read_url(url, None, verbose)
         if errors:
             return (None, errors)
-        if verbose:
-            print "Fetch of {0} = ".format(url)
-            print uo_json
         if "No free outputs" not in uo_json:
             try:
                 self.unspent_outputs = json.loads(uo_json)['unspent_outputs']
@@ -129,8 +123,6 @@ class AddressDataBC(object):
         errors is a dictionary.
 
         """
-        if verbose:
-            print "ENTER AddressDataBC.fetch_transactions"
         self.transactions = None
         url = "https://blockchain.info/rawaddr/"
         url += address
@@ -153,11 +145,9 @@ class AddressDataBC(object):
         errors is a dictionary.
 
         """
-        if verbose:
-            print "ENTER AddressDataBC.newest_send"
         errors = {}
         if not hasattr(self, 'transactions') or not self.transactions:
-            txs, errors = self.fetch_transactions(address)
+            txs, errors = self.fetch_transactions(address, verbose)
             if errors:
                 return (datetime.utcfromtimestamp(0), errors)
         else:
@@ -264,6 +254,9 @@ class TxnServiceBlockChain(object):
         (address, hash, errors)
 
         """
+        if verbose:
+            print "Attempting to calculate and send {0} satoshis from {1}"\
+                    .format(balance, address_info.address)
         # Calculate fees and reduce balance by that amount
         # Tx size roughly 148 * number_of_inputs + 34 * number_of_outputs + 10
         # Note: this assumes we are emptying the address
@@ -363,7 +356,7 @@ class TxnServiceBlockChain(object):
         try:
             json_values = json.dumps(data)
             url_values = "recipients=" + urllib.quote(json_values)
-            note = "&note=Auto+sweep+using+CoinSweeper+(by+ron%40ronhelwig.com)"
+            note = "&note=Auto+sweep+using+https%3A%2F%2Fgithub.com%2Frhelwig%2Fcoinsweep"
             send_url = "{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}".format(
                                 "https://blockchain.info/merchant/",
                                 address_info.private_key,
@@ -420,7 +413,7 @@ class TxnServiceBlockChain(object):
                     r[sweep_address.address] = json.dumps(errors)
                     continue
                 if verbose:
-                    print "got time {0}".format(most_recent)
+                    print "Most recent send time: {0}".format(most_recent)
                 if most_recent == datetime.utcfromtimestamp(0):
                     if verbose:
                         print "no sends from this address yet"
@@ -439,8 +432,6 @@ class TxnServiceBlockChain(object):
                     # we need to check the most recent send
                     # add a margin of error (say 5 minutes)
                     elapsed_time = datetime.utcnow() - most_recent
-                    if verbose:
-                        print "elapsed time={0}".format(elapsed_time)
                     elapsed_time = elapsed_time + timedelta(minutes=5)
                     if verbose:
                         print "elapsed time(+ margin)={0}".format(elapsed_time)
@@ -452,7 +443,7 @@ class TxnServiceBlockChain(object):
                                                      fetcher,
                                                      verbose)
                         if m:
-                            r[a] = m
+                            r[a] = "Success, Tx=".format(m)
                         else:
                             r[a] = errors
                     else:
