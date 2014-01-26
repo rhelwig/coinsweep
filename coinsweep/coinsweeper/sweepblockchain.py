@@ -96,7 +96,7 @@ class AddressDataBC(object):
         self.unspent_outputs = None
         url = "https://blockchain.info/unspent?active="
         url += address
-        uo_json, errors = _read_url(url, None, verbose)
+        uo_json, errors = _read_url(url, None)
         if errors:
             return (None, errors)
         if "No free outputs" not in uo_json:
@@ -126,7 +126,7 @@ class AddressDataBC(object):
         self.transactions = None
         url = "https://blockchain.info/rawaddr/"
         url += address
-        uo_json, errors = _read_url(url, None, verbose)
+        uo_json, errors = _read_url(url, None)
         if errors:
             return (None, errors)
         try:
@@ -443,7 +443,7 @@ class TxnServiceBlockChain(object):
                                                      fetcher,
                                                      verbose)
                         if m:
-                            r[a] = "Success, Tx=".format(m)
+                            r[a] = "Success, Tx={0}".format(m)
                         else:
                             r[a] = errors
                     else:
